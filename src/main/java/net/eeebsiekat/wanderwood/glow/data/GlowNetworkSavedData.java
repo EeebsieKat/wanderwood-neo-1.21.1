@@ -47,7 +47,7 @@ public class GlowNetworkSavedData extends SavedData {
 
         double maxGenerationRadius = 2500.0;
         double borderSize = Math.min(level.getWorldBorder().getSize() / 2.0, maxGenerationRadius);
-        double minRadius = 128.0;
+        double minRadius = 64.0;
 
         List<Vec2> points2D = PoissonDiscSampler.generatePoints(
                 minRadius, -borderSize, -borderSize, borderSize, borderSize, 30, level.getRandom()
