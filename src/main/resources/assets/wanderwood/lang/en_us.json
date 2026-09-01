@@ -1,0 +1,13 @@
+{
+  "itemGroup.wanderwood": "Example Mod Tab",
+  "block.wanderwood.example_block": "Example Block",
+  "item.wanderwood.example_item": "Example Item",
+
+  "wanderwood.configuration.title": "The Wanderwood Configs",
+  "wanderwood.configuration.section.wanderwood.common.toml": "The Wanderwood Configs",
+  "wanderwood.configuration.section.wanderwood.common.toml.title": "The Wanderwood Configs",
+  "wanderwood.configuration.items": "Item List",
+  "wanderwood.configuration.logDirtBlock": "Log Dirt Block",
+  "wanderwood.configuration.magicNumberIntroduction": "Magic Number Text",
+  "wanderwood.configuration.magicNumber": "Magic Number"
+}
