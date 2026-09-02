@@ -7,6 +7,7 @@ import net.eeebsiekat.wanderwood.glow.block.entity.GlowExtractorBlockEntity;
 import net.eeebsiekat.wanderwood.glow.block.entity.ShroomeBlockEntity;
 import net.eeebsiekat.wanderwood.glow.block.entity.StumpBlockEntity;
 import net.eeebsiekat.wanderwood.glow.data.GlowNetworkSavedData;
+import net.eeebsiekat.wanderwood.glow.data.GlowWaypointSavedData;
 import net.eeebsiekat.wanderwood.glow.item.GlowGogglesItem;
 import net.eeebsiekat.wanderwood.glow.network.ClientboundGlowSyncPacket;
 import net.eeebsiekat.wanderwood.glow.network.ServerboundGlowTravelPacket;
@@ -84,10 +85,16 @@ public class TheWanderwood {
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity().level() instanceof ServerLevel serverLevel) {
-            GlowNetworkSavedData data = GlowNetworkSavedData.get(serverLevel);
+            GlowNetworkSavedData networkData = GlowNetworkSavedData.get(serverLevel);
+            GlowWaypointSavedData waypointData = GlowWaypointSavedData.get(serverLevel);
+
             PacketDistributor.sendToPlayer(
                     (ServerPlayer) event.getEntity(),
-                    new ClientboundGlowSyncPacket(new ArrayList<>(data.getNodes()), data.getLines())
+                    new ClientboundGlowSyncPacket(
+                            new ArrayList<>(networkData.getNodes()),
+                            networkData.getLines(),
+                            new ArrayList<>(waypointData.getAllWaypoints())
+                    )
             );
         }
     }
