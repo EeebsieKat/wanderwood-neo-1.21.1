@@ -19,6 +19,12 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import net.eeebsiekat.wanderwood.glow.data.GlowNetworkSavedData;
+import net.eeebsiekat.wanderwood.glow.data.GlowWaypointSavedData;
+import net.eeebsiekat.wanderwood.glow.network.ClientboundGlowSyncPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import java.util.ArrayList;
 
 public class StumpBlock extends Block implements EntityBlock {
 
@@ -29,28 +35,50 @@ public class StumpBlock extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide && placer instanceof Player player) {
-            if (level.getBlockEntity(pos) instanceof StumpBlockEntity be) {
-                be.setOwner(player.getUUID());
+        if (!level.isClientSide() && placer != null) {
+            if (level.getBlockEntity(pos) instanceof AbstractWaypointBlockEntity be) {
+                be.setOwner(placer.getUUID());
             }
         }
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
-            if (level.getBlockEntity(pos) instanceof StumpBlockEntity stump) {
-                boolean canSeeSky = level.canSeeSky(pos.above());
-                player.displayClientMessage(Component.literal(String.format(
-                        "Stump | Sky Access: %s | Field Strength: %.2f | Stored Glow: %.1f / %.1f",
-                        canSeeSky ? "Clear" : "Blocked",
-                        stump.getCurrentFieldStrength(),
-                        stump.getStoredGlow(),
-                        stump.getMaxGlow()
-                )), true);
+        if (player.isCrouching()) {
+            if (!level.isClientSide()) {
+                if (level.getBlockEntity(pos) instanceof StumpBlockEntity stump) {
+                    boolean canSeeSky = level.canSeeSky(pos.above());
+                    player.displayClientMessage(Component.literal(String.format(
+                            "Stump | Sky Access: %s | Field Strength: %.2f | Stored Glow: %.1f / %.1f",
+                            canSeeSky ? "Clear" : "Blocked",
+                            stump.getCurrentFieldStrength(),
+                            stump.getStoredGlow(),
+                            stump.getMaxGlow()
+                    )), true);
+                }
             }
+            return InteractionResult.sidedSuccess(level.isClientSide());
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+
+        if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
+            ServerLevel serverLevel = (ServerLevel) level;
+            GlowNetworkSavedData networkData = GlowNetworkSavedData.get(serverLevel);
+            GlowWaypointSavedData waypointData = GlowWaypointSavedData.get(serverLevel);
+
+            PacketDistributor.sendToPlayer(
+                    serverPlayer,
+                    new ClientboundGlowSyncPacket(
+                            new ArrayList<>(networkData.getNodes()),
+                            networkData.getLines(),
+                            new ArrayList<>(waypointData.getAllWaypoints())
+                    )
+            );
+        } else if (level.isClientSide()) {
+            net.minecraft.client.Minecraft.getInstance().setScreen(
+                    new net.eeebsiekat.wanderwood.glow.client.gui.GlowWaypointScreen()
+            );
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
