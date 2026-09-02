@@ -82,6 +82,15 @@ public abstract class AbstractWaypointBlockEntity extends BlockEntity {
         setChanged();
     }
 
+    public UUID getWaypointId() {
+        return waypointId;
+    }
+
+    public void setWaypointId(UUID waypointId) {
+        this.waypointId = waypointId;
+        setChanged();
+    }
+
     public double getCurrentFieldStrength() { return currentFieldStrength; }
     public double getStoredGlow() { return storedGlow; }
 
