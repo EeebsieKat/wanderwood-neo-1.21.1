@@ -11,6 +11,7 @@ import net.eeebsiekat.wanderwood.glow.data.GlowWaypointSavedData;
 import net.eeebsiekat.wanderwood.glow.item.GlowGogglesItem;
 import net.eeebsiekat.wanderwood.glow.network.ClientboundGlowSyncPacket;
 import net.eeebsiekat.wanderwood.glow.network.ServerboundGlowTravelPacket;
+import net.eeebsiekat.wanderwood.glow.network.ServerboundRequestWaypointsPacket;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -112,6 +113,12 @@ public class TheWanderwood {
                 ServerboundGlowTravelPacket.TYPE,
                 ServerboundGlowTravelPacket.STREAM_CODEC,
                 ServerboundGlowTravelPacket::handleServer
+        );
+
+        registrar.playToServer(
+                ServerboundRequestWaypointsPacket.TYPE,
+                ServerboundRequestWaypointsPacket.STREAM_CODEC,
+                ServerboundRequestWaypointsPacket::handleServer
         );
     }
 }

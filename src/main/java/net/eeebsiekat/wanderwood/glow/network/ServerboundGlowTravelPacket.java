@@ -1,6 +1,8 @@
 package net.eeebsiekat.wanderwood.glow.network;
 
+import net.eeebsiekat.wanderwood.glow.data.GlowWaypointSavedData;
 import net.eeebsiekat.wanderwood.glow.teleport.GlowTeleporter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -35,10 +37,29 @@ public record ServerboundGlowTravelPacket(Vec3 targetPos, ResourceKey<Level> tar
         return TYPE;
     }
 
+    public static double calculateCost(double distance) {
+        return 12500.0; // Flat cost per teleport
+    }
+
     public static void handleServer(ServerboundGlowTravelPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                GlowTeleporter.travelToNode(player, packet.targetPos(), packet.targetDimension());
+                GlowWaypointSavedData waypointData = GlowWaypointSavedData.get(player.serverLevel());
+                BlockPos targetBlockPos = BlockPos.containing(packet.targetPos());
+
+                waypointData.getAllWaypoints().stream()
+                        .filter(wp -> wp.getPos().equals(targetBlockPos))
+                        .findFirst()
+                        .ifPresent(wp -> {
+                            double distance = player.position().distanceTo(packet.targetPos());
+                            double cost = calculateCost(distance);
+
+                            if (wp.getStoredGlow() >= cost) {
+                                wp.setStoredGlow(wp.getStoredGlow() - cost);
+                                waypointData.setDirty();
+                                GlowTeleporter.travelToNode(player, packet.targetPos(), packet.targetDimension());
+                            }
+                        });
             }
         });
     }
